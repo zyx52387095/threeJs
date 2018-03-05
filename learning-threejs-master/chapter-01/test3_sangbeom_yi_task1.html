@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Test3 Sangbeom Yi Task1</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+    <script type="text/javascript" src="../libs/ParametricGeometries.js"></script>
+    <script type="text/javascript" src="../libs/ConvexGeometry.js"></script>
+
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="WebGL-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+
+    // once everything is loaded, we run our Three.js stuff.
+    function init() {
+
+        var stats = initStats();
+
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        var scene = new THREE.Scene();
+
+        // create a camera, which defines where we're looking at.
+        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        // create a render and set the size
+        var renderer = new THREE.WebGLRenderer();
+
+        renderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+
+        // create the ground plane
+        var planeGeometry = new THREE.PlaneGeometry(60, 50, 1, 1);
+        var planeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
+        var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+
+
+        // rotate and position the plane
+        plane.rotation.x = -0.5 * Math.PI;
+        plane.position.x = 15;
+        plane.position.y = 0;
+        plane.position.z = 0;
+        plane.castShadow = true;
+
+        // add the plane to the scene
+        scene.add(plane);
+
+        var cube;
+        var cube2;
+        var wheelF1;
+        var wheelF2;
+        var wheelR1;
+        var wheelR2;
+        var sphere;
+        var cylinder;
+        var groupTruck;
+        var bboxMesh;
+
+        // show axes in the screen
+        var axes = new THREE.AxisHelper(20);
+        //axes.rotateX(30);
+        scene.add(axes);
+
+        // create a cube
+        var cubeGeometry = new THREE.BoxGeometry(6, 2, 2);
+        var cubeMaterial = new THREE.MeshLambertMaterial({color: 0xff0000});
+        cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+
+        // position the cube
+        cube.position.x = 0;
+        cube.position.y = 3.3;
+        cube.position.z = 0;
+
+        var cubeGeometry2 = new THREE.BoxGeometry(1, 1, 2);
+        var cubeMaterial2 = new THREE.MeshLambertMaterial({color: 0xff0000});
+        cube2 = new THREE.Mesh(cubeGeometry2, cubeMaterial2);
+
+        // position the cube
+        cube2.position.x = 3.5;
+        cube2.position.y = 2.8;
+        cube2.position.z = 0;
+
+        // add the cube to the scene
+        //scene.add(cube);
+
+        //torusF1 = createMesh(new THREE.TorusGeometry(5, 6, 18, 6, Math.PI * 2));
+        var torusF1Geometry = new THREE.TorusGeometry(5, 2, 10, 10);
+        var torusF1Material = new THREE.MeshLambertMaterial({color: 0xff0000});
+        wheelF1 = new THREE.Mesh(torusF1Geometry, torusF1Material);
+        wheelF1.scale.set(0.15, 0.15, 0.15);
+        wheelF1.position.x = 2;
+        wheelF1.position.y = 2.5;
+        wheelF1.position.z = 1.5;
+
+        var torusF2Geometry = new THREE.TorusGeometry(5, 2, 10, 10);
+        var torusF2Material = new THREE.MeshLambertMaterial({color: 0xff0000});
+        wheelF2 = new THREE.Mesh(torusF1Geometry, torusF1Material);
+        wheelF2.scale.set(0.15, 0.15, 0.15);
+        wheelF2.position.x = 2;
+        wheelF2.position.y = 2.5;
+        wheelF2.position.z = -1.5;
+
+        var torusR1Geometry = new THREE.TorusGeometry(5, 2, 10, 10);
+        var torusR1Material = new THREE.MeshLambertMaterial({color: 0xff0000});
+        wheelR1 = new THREE.Mesh(torusR1Geometry, torusR1Material);
+        wheelR1.scale.set(0.15, 0.15, 0.15);
+        wheelR1.position.x = -1.5;
+        wheelR1.position.y = 2.5;
+        wheelR1.position.z = 1.5;
+
+        var torusR2Geometry = new THREE.TorusGeometry(5, 2, 10, 10);
+        var torusR2Material = new THREE.MeshLambertMaterial({color: 0xff0000});
+        wheelR2 = new THREE.Mesh(torusR2Geometry, torusR2Material);
+        wheelR2.scale.set(0.15, 0.15, 0.15);
+        wheelR2.position.x = -1.5;
+        wheelR2.position.y = 2.5;
+        wheelR2.position.z = -1.5;
+
+        var sphereGeometry = new THREE.SphereGeometry(4, 20, 20);
+        var sphereMaterial = new THREE.MeshLambertMaterial({color: 0x7777ff});
+        sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+        // position the sphere
+        sphere.position.x = 20;
+        sphere.position.y = 0;
+        sphere.position.z = 2;
+        // add the sphere to the scene
+        //scene.add(sphere);
+
+        var cylinderGeometry = new THREE.CylinderGeometry(2, 2, 20);
+        var cylinderMaterial = new THREE.MeshLambertMaterial({color: 0x77ff77});
+        var cylinder = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+
+        cylinder.position.set(0, 0, 1);
+
+        //scene.add(cylinder);
+
+
+        
+        // also create a group, only used for rotating
+        groupTruck = new THREE.Group();
+        groupTruck.castShadow = true;
+        groupTruck.add(cube);
+        groupTruck.add(cube2);
+        groupTruck.add(wheelF1);
+        groupTruck.add(wheelF2);
+        groupTruck.add(wheelR1);
+        groupTruck.add(wheelR2);
+        //group.add(sphere);
+        //group.add(cylinder);
+
+        scene.add(groupTruck);
+        
+        // position and point the camera to the center of the scene
+        camera.position.x = -30;
+        camera.position.y = 40;
+        camera.position.z = 30;
+        camera.lookAt(scene.position);
+
+        // add subtle ambient lighting
+        var ambientLight = new THREE.AmbientLight(0x0c0c0c);
+        scene.add(ambientLight);
+
+        // add spotlight for the shadows
+        var spotLight = new THREE.SpotLight(0xffffff);
+        spotLight.position.set(-40, 60, -10);
+        spotLight.castShadow = true;
+        spotLight.lookAt(groupTruck);
+
+        scene.add(spotLight);
+
+        // add the output of the renderer to the html element
+        document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+        // call the render function
+        var step = 0;
+        var scalingStep = 0;
+
+        var controls = new function () {
+            this.truckSpeed = 0.03;
+            this.truckRotationSpeed = 0.03;
+        };
+
+        var gui = new dat.GUI();
+        gui.add(controls, 'truckSpeed', -1.5, 1.5);
+        gui.add(controls, 'truckRotationSpeed', 0, 0.5);
+
+        render();
+
+        function render() {
+            stats.update();
+            // rotate the cube around its axes
+            //cube.rotation.x += controls.truckRotationSpeed;
+            //groupTruck.rotateX(truckRotationSpeed);
+            groupTruck.rotation.y = controls.truckRotationSpeed *2;
+
+
+            // bounce the sphere up and down
+            if(controls.truckSpeed > 0 || controls.truckSpeed < 0) {
+                step += controls.truckSpeed;
+                groupTruck.translateX(controls.truckSpeed);
+                 if(groupTruck.position.x > 35)
+                 {
+                     groupTruck.position.x = 35;
+                 }      
+                 if(groupTruck.position.x < -12)
+                 {
+                     groupTruck.position.x = -12;
+                 }
+                 
+                if(groupTruck.position.z > 20)
+                 {
+                     groupTruck.position.z = 20;
+                 }      
+                 if(groupTruck.position.z < -20)
+                 {
+                     groupTruck.position.z = -20;
+                 }    
+            }
+
+            //scalingStep += controls.scalingSpeed;
+            //var scaleX = Math.abs(Math.sin(scalingStep / 4));
+            //var scaleY = Math.abs(Math.cos(scalingStep / 5));
+            //var scaleZ = Math.abs(Math.sin(scalingStep / 7));
+            //cylinder.scale.set(scaleX, scaleY, scaleZ);
+
+            //spotLight.position.set(group.position.x, group.positon.y, group.position.z);
+
+            // render using requestAnimationFrame
+            renderer.render(scene, camera);
+            requestAnimationFrame(render);
+
+        }
+
+        function initStats() {
+
+            var stats = new Stats();
+
+            stats.setMode(0); // 0: fps, 1: ms
+
+            // Align top-left
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.left = '0px';
+            stats.domElement.style.top = '0px';
+
+            document.getElementById("Stats-output").appendChild(stats.domElement);
+
+            return stats;
+        }
+    }
+    window.onload = init;
+</script>
+</body>
+</html>

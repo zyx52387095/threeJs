@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Example 01.05 - Control gui</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="WebGL-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+
+    var camera;
+    var renderer;
+
+    // once everything is loaded, we run our Three.js stuff.
+    function init() {
+
+        var stats = initStats();
+
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        var scene = new THREE.Scene();
+
+        // create a camera, which defines where we're looking at.
+        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        // create a render and set the size
+        renderer = new THREE.WebGLRenderer();
+
+        // init Renderer
+        initRenderer(0xEEEEEE, 1.0);
+
+        // create the ground plane
+        addPlane(60, 20, 1, 1, 0xffffff, 15, 0, 0, (-0.5 * Math.PI));
+
+		//TASK-JAN-18-1: Add two more cubes: one green (in front of the purple sphere), one yellow (behind the sphere)
+        var cubeGreen = addCube(4, 4, 4, 0x008000, 2, 3, 0)
+        var cubeYellow = addCube(4, 4, 4, 0xffff00, 40, 3, 0)
+
+        //TASK-JAN-18-2: Refactor adding of the cube(s) (see addSphere below)
+        // create a cube
+        var cube = addCube(4, 4, 4, 0xff0000, -4, 3, 0);
+
+        // position and point the camera to the center of the scene
+        cameraSetPosition(-30, 40, 30);
+
+        // add subtle ambient lighting        
+        addLight(1, 0x0c0c0c);
+
+        // add spotlight for the shadows
+        addLight(0, 0xffffff, -40, 60, -10);
+
+        // add the output of the renderer to the html element
+        document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+        // call the render function
+        var step = 0;
+        var stepPos = 0;
+        var stepRot = 0;
+
+        var controls = new function () {
+            this.rotationSpeed = 0.02;
+            this.bouncingSpeed = 0.03;
+            // TASK-JAN-19-1:  .add new cube behind the spere
+            this.positionSpeed = 0.02;
+            this.rotationSpeed2 = 0.10;
+        };
+
+        //add GUI Controls.
+        var gui = new dat.GUI();
+        gui.add(controls, 'rotationSpeed', 0, 0.5);
+        gui.add(controls, 'bouncingSpeed', 0, 0.5);
+        gui.add(controls, 'positionSpeed', -5, 5);
+        gui.add(controls, 'rotationSpeed2', 0, 0.5);
+
+        var sphere = addSphere(4, 20, 20, 0x7777ff, 20, 0, 2);
+        var sphere2 = addSphere(2, 10, 10, 0x0000ff, -10, 3, 5);
+        renderScene();
+
+        function renderScene() {
+            stats.update();
+            // rotate the cube around its axes
+            shapeRotation(cube, 0.02, 0.02, 0.02);
+
+            // Change the rotation and position using GUI pannel
+            stepRot += controls.rotationSpeed2;
+            shapeRotation(cubeGreen, 0, 0, (10 * Math.abs(Math.sin(stepRot))));
+            stepPos += controls.positionSpeed;
+            cubeYellow.position.z = (10 * Math.abs(Math.sin(stepPos)));
+
+            // bounce the sphere up and down
+            step += controls.bouncingSpeed;
+            sphere.position.x = 20 + ( 10 * (Math.cos(step)));
+            sphere.position.y = 2 + ( 10 * Math.abs(Math.sin(step)));
+
+            sphere2.position.x = -10 + (5 * (Math.cos(step)));
+            sphere2.position.y = 3 + (3 * Math.abs(Math.sin(step)));
+            sphere2.position.z = 5 + (5 * Math.abs(Math.sin(step))) * Math.cos(step);
+
+            // render using requestAnimationFrame
+            requestAnimationFrame(renderScene);
+            renderer.render(scene, camera);
+        }
+
+        // initStats
+        function initStats() {
+            var stats = new Stats();
+
+            stats.setMode(0); // 0: fps, 1: ms
+
+            // Align top-left
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.left = '0px';
+            stats.domElement.style.top = '0px';
+
+            document.getElementById("Stats-output").appendChild(stats.domElement);
+
+            return stats;
+        }
+
+        function initRenderer(color, a) {
+            renderer.setClearColor(new THREE.Color(color, a));
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMapEnabled = true;
+        }
+
+        //addPlane
+        function addPlane(width, height, widthSegments, heightSegments, planeColor, posX, posY, posZ, rotX, rotY, rotZ) {
+            var planeGeometry = new THREE.PlaneGeometry(width, height, widthSegments, heightSegments);
+            var planeMaterial = new THREE.MeshLambertMaterial({color: planeColor});
+            var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            plane.receiveShadow = true;
+
+            // rotate and position the plane
+            plane.rotation.x = rotX;
+            plane.position.x = posX;
+            plane.position.y = posY;
+            plane.position.z = posZ;
+
+            // add the plane to the scene
+            scene.add(plane);
+        }
+
+        //set a camera position
+        function cameraSetPosition(posX, posY, posZ) {
+            camera.position.x = posX;
+            camera.position.y = posY;
+            camera.position.z = posZ;
+            camera.lookAt(scene.position);
+        }        
+
+        //addLight
+        function addLight(lightType, color, posX, posY, posZ) {
+            var Light;
+            if(lightType) {
+                Light = new THREE.AmbientLight(color);
+            }
+            else {
+                Light = new THREE.SpotLight(color);
+                Light.position.set(posX, posY, posZ);
+                Light.castShadow = true;
+            }
+
+            scene.add(Light);
+        }
+
+        //addSphere
+        function addSphere(r, nw, nh, sphereColor, x, y, z) {
+            var sphereGeometry = new THREE.SphereGeometry(r, nw, nh);
+            var sphereMaterial = new THREE.MeshLambertMaterial({ color: sphereColor });
+            var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+            // position the sphere
+            sphere.position.x = x;
+            sphere.position.y = y;
+            sphere.position.z = z;
+            sphere.castShadow = true;
+
+            // add the sphere to the scene
+            scene.add(sphere);
+            return sphere;
+        }
+
+        //addCube
+        function addCube(r, nw, nh, cubeColor, x, y, z) {
+            var cubeGeometry = new THREE.BoxGeometry(r, nw, nh);
+            var cubeMaterial = new THREE.MeshLambertMaterial({color: cubeColor});
+            var cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+
+            // position the cube
+            cube.position.x = x;
+            cube.position.y = y;
+            cube.position.z = z;
+            cube.castShadow = true;
+
+            // add the cube to the scene
+            scene.add(cube);
+
+            return cube;
+        }
+
+        // shapeRotation
+        function shapeRotation(shape, x, y, z) {
+            shape.rotation.x += x;
+            shape.rotation.y += y;
+            shape.rotation.z += z;
+        }
+    }
+
+    function onResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    window.onload = init;
+
+    // listen to the resize events
+    window.addEventListener('resize', onResize, false);
+
+</script>
+</body>
+</html>

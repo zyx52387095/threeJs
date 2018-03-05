@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>test1 sangbeom yi task2</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<div id="Stats-output">
+</div>
+<!-- Div which will hold the Output -->
+<div id="WebGL-output">
+</div>
+
+<!-- Javascript code that runs our Three.js examples -->
+<script type="text/javascript">
+
+    // once everything is loaded, we run our Three.js stuff.
+    function init() {
+
+        var stats = initStats();
+
+        // create a scene, that will hold all our elements such as objects, cameras and lights.
+        var scene = new THREE.Scene();
+
+        // create a camera, which defines where we're looking at.
+        var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        // create a render and set the size
+        var renderer = new THREE.WebGLRenderer();
+
+        renderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMapEnabled = true;
+
+        // create the ground plane
+        var planeGeometry = new THREE.PlaneGeometry(60, 40, 1, 1);
+        var planeMaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
+        var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        plane.receiveShadow = true;
+
+        // rotate and position the plane
+        plane.rotation.x = -0.5 * Math.PI;
+        plane.position.x = 0;
+        plane.position.y = 0;
+        plane.position.z = 0;
+
+        // add the plane to the scene
+        scene.add(plane);
+
+        // show axes in the screen
+        var axes = new THREE.AxisHelper(20);
+        //axes.rotateX(30);
+        scene.add(axes);
+
+        // position and point the camera to the center of the scene
+        camera.position.x = -20;
+        camera.position.y = 25;
+        camera.position.z = 20;
+        camera.lookAt(new THREE.Vector3(5, 0, 0));
+
+        // add subtle ambient lighting
+        // var ambientLight = new THREE.AmbientLight(0x494949);
+        // scene.add(ambientLight);
+
+        // add spotlight for the shadows
+        var spotLight = new THREE.SpotLight(0xffffff);
+        spotLight.position.set(-40, 60, 10);
+        spotLight.castShadow = true;
+        scene.add(spotLight);
+
+        // add the output of the renderer to the html element
+        document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+        // call the render function
+        var step = 0;
+
+        var vertices = [
+            new THREE.Vector3(1, 3, 1),
+            new THREE.Vector3(1, 3, -1),
+            new THREE.Vector3(1, -1, 1),
+            new THREE.Vector3(1, -1, -1),
+            new THREE.Vector3(-1, 3, -1),
+            new THREE.Vector3(-1, 3, 1),
+            new THREE.Vector3(-1, -1, -1),
+            new THREE.Vector3(-1, -1, 1)
+        ];
+
+        var faces = [
+            new THREE.Face3(0, 2, 1),
+            new THREE.Face3(2, 3, 1),
+            new THREE.Face3(4, 6, 5),
+            new THREE.Face3(6, 7, 5),
+            new THREE.Face3(4, 5, 1),
+            new THREE.Face3(5, 0, 1),
+            new THREE.Face3(7, 6, 2),
+            new THREE.Face3(6, 3, 2),
+            new THREE.Face3(5, 7, 0),
+            new THREE.Face3(7, 2, 0),
+            new THREE.Face3(1, 3, 4),
+            new THREE.Face3(3, 6, 4),
+        ];
+
+        var geom = new THREE.Geometry();
+        geom.vertices = vertices;
+        geom.faces = faces;
+        geom.computeFaceNormals();
+
+       var vertices2 = [
+           new THREE.Vector3(0, 0, 0),
+           new THREE.Vector3(1, 0, 0),
+           new THREE.Vector3(0, 1, 0),
+           new THREE.Vector3(0, 0, 1),
+       ];
+
+        var faces2 = [
+            new THREE.Face3(0, 3, 1),
+            new THREE.Face3(0, 1, 2),
+            new THREE.Face3(0, 2, 3),
+            new THREE.Face3(1, 3, 2),
+
+        ];
+
+        var geom2 = new THREE.Geometry();
+        geom2.vertices = vertices2;
+        geom2.faces = faces2;
+        geom2.computeFaceNormals();
+
+        var vertices3 = [
+            new THREE.Vector3(0, 0, 0),
+            new THREE.Vector3(0, 5, 0),
+            new THREE.Vector3(5, 5, 0),
+            new THREE.Vector3(5, 0, 0),
+            new THREE.Vector3(2.5, 2.5, 5)
+        ];
+
+        var faces3 = [
+            new THREE.Face3(0, 1, 2),
+            new THREE.Face3(0, 2, 3),
+            new THREE.Face3(1, 0, 4),
+            new THREE.Face3(2, 1, 4),
+            new THREE.Face3(3, 2, 4),
+            new THREE.Face3(0, 3, 4)
+        ];
+
+        var geom3 = new THREE.Geometry();
+        geom3.vertices = vertices3;
+        geom3.faces = faces3;
+        geom3.computeFaceNormals();
+
+        var vertices4 = [
+           new THREE.Vector3(0, 0, 0),
+           new THREE.Vector3(0, 0, 1),
+           new THREE.Vector3(0, 1, 0),
+    
+        ];
+
+        var faces4 = [
+            new THREE.Face3(0, 1, 2),
+        ];
+
+        var geom4 = new THREE.Geometry();
+        geom4.vertices = vertices4;
+        geom4.faces = faces4;
+        geom4.computeFaceNormals();
+
+        var verticesTruncatedPyramid = [
+                new THREE.Vector3(-10, 0, -10),
+                new THREE.Vector3(-10, 0, 10),
+                new THREE.Vector3(10, 0, 10),
+                new THREE.Vector3(10, 0, -10),
+
+                new THREE.Vector3(-5, 10, -5),
+                new THREE.Vector3(-5, 10, 5),
+                new THREE.Vector3(5, 10, 5),
+                new THREE.Vector3(5, 10, -5)
+        ];
+
+        var facesTruncatedPyramid = [
+            new THREE.Face3(0, 1, 3),
+            new THREE.Face3(2, 3, 1),
+            new THREE.Face3(4, 5, 7),
+            new THREE.Face3(6, 7, 5),
+
+            new THREE.Face3(1, 4, 0),
+            new THREE.Face3(4, 1, 5),
+            new THREE.Face3(1, 2, 5),
+            new THREE.Face3(6, 5, 2),
+
+            new THREE.Face3(4, 3, 0),
+            new THREE.Face3(7, 3, 4),
+            new THREE.Face3(2, 3, 7),
+            new THREE.Face3(6, 2, 7),
+        ];
+
+
+        var geomTruncatedPyramid = new THREE.Geometry();
+        geomTruncatedPyramid.vertices = verticesTruncatedPyramid;
+        geomTruncatedPyramid.faces = facesTruncatedPyramid;
+        geomTruncatedPyramid.computeFaceNormals();
+
+        var materials = [
+            new THREE.MeshLambertMaterial({opacity: 0.6, color: 0x44ff44, transparent: true}),
+            new THREE.MeshBasicMaterial({color: 0x000000, wireframe: true})
+
+        ];
+
+        var mesh = THREE.SceneUtils.createMultiMaterialObject(geom, materials);
+        mesh.children.forEach(function (e) {
+            e.castShadow = true
+        });
+
+        var mesh2 = THREE.SceneUtils.createMultiMaterialObject(geom2, materials);
+        mesh2.children.forEach(function (e) {
+            e.castShadow = true
+        });
+
+        var mesh3 = THREE.SceneUtils.createMultiMaterialObject(geom3, materials);
+        mesh3.children.forEach(function (e) {
+            e.castShadow = true
+        });
+
+        var mesh4 = THREE.SceneUtils.createMultiMaterialObject(geom4, materials);
+        mesh4.children.forEach(function (e) {
+            e.castShadow = true
+        });
+
+        mesh4.scale.x *= 10;
+        mesh4.scale.z *= 5;
+
+        var meshTruncatedPyramid = THREE.SceneUtils.createMultiMaterialObject(geomTruncatedPyramid, materials);
+        mesh3.children.forEach(function (e) {
+            e.castShadow = true
+        }); 
+
+        //scene.add(mesh);
+        //scene.add(mesh2);
+        //scene.add(mesh3);
+        scene.add(meshTruncatedPyramid);
+
+        var controlsY = new function () {
+            this.Width = 1;
+            this.Height = 1;
+
+            this.scaleX = 1;
+            this.scaleY = 1;
+            this.scaleZ = 1;
+        };
+
+        // Add GUI
+        var guiY = new dat.GUI();
+        
+        guiY.add(controlsY, 'Width', 0, 10);
+        guiY.add(controlsY, 'Height', 0, 10);
+
+        function addControl(x, y, z) {
+            var controls = new function () {
+                this.x = x;
+                this.y = y;
+                this.z = z;
+            };
+
+            return controls;
+        }
+
+        render();
+
+        function render() {
+            stats.update();
+
+            meshTruncatedPyramid.rotation.y += 0.02;
+            
+            // Change the scale.
+            meshTruncatedPyramid.scale.set(controlsY.Width, controlsY.Height, controlsY.Width);
+
+            // render using requestAnimationFrame
+            requestAnimationFrame(render);
+            renderer.render(scene, camera);
+        }
+
+        function initStats() {
+
+            var stats = new Stats();
+
+            stats.setMode(0); // 0: fps, 1: ms
+
+            // Align top-left
+            stats.domElement.style.position = 'absolute';
+            stats.domElement.style.left = '0px';
+            stats.domElement.style.top = '0px';
+
+            document.getElementById("Stats-output").appendChild(stats.domElement);
+
+            return stats;
+        }
+    }
+    window.onload = init
+
+
+</script>
+</body>
+</html>

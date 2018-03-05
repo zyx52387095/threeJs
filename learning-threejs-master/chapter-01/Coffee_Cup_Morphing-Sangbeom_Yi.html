@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Sangbeom Yi - Homework - Manual morph targets</title>
+    <script type="text/javascript" src="../libs/three.js"></script>
+
+    <script type="text/javascript" src="../libs/stats.js"></script>
+    <script type="text/javascript" src="../libs/dat.gui.js"></script>
+    <script type="text/javascript" src="../libs/ThreeBSP.js"></script>
+    <style>
+        body {
+            /* set margin to 0 and overflow to hidden, to go fullscreen */
+            margin: 0;
+            overflow: hidden;
+        }
+    </style>
+</head>
+
+<body>
+    <!--
+Due Date: April 20th.
+Morph a coffee cup into a torus
+Hint: To build the coffee cup you could:
+. use groups and/or merging (see appropriate code)
+  . use a group to contain a torus (the handle of the coffee cup)
+  . use group to contain a cylinder geometry. 
+  . Make a cylinder hole on the previous cylinder (subtract another cylinder). 
+  . use a group to contain a cylinder (the buttom of the cup)
+  . add all in another "cup" group.
+. In morphing you could bring all groups except the handle to scale (0,0,0) to get the donut geometry (scale the handle appropriately).
+. Now apply manual morphing
+
+(a torus into a shape made of a torus +)
+
+-->
+    <div id="Stats-output">
+    </div>
+    <!-- Div which will hold the Output -->
+    <div id="WebGL-output">
+    </div>
+
+    <!-- Javascript code that runs our Three.js examples -->
+    <script type="text/javascript">
+        // once everything is loaded, we run our Three.js stuff.
+        function init() {
+
+            var stats = initStats();
+
+            // create a scene, that will hold all our elements such as objects, cameras and lights.
+            var scene = new THREE.Scene();
+
+            // create a camera, which defines where we're looking at.
+            var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            // create a render and set the size
+            var renderer = new THREE.WebGLRenderer();
+
+            renderer.setClearColor(new THREE.Color(0xEEEEEE, 1.0));
+            renderer.setSize(window.innerWidth, window.innerHeight);
+
+            // create the ground plane
+            var planeGeometry = new THREE.PlaneGeometry(20, 20, 1, 1);
+            var planeMaterial = new THREE.MeshLambertMaterial({ color: 0xffff11, transparent: true, opacity: 0.6 });
+            var plane = new THREE.Mesh(planeGeometry, planeMaterial);
+
+            // rotate and position the plane
+            plane.rotation.x = -0.5 * Math.PI;
+            plane.position.x = plane.position.y = 0;
+            plane.position.z = 0;
+
+            var step = 0;
+
+            // add the plane to the scene
+            scene.add(plane);
+
+            // create a cylinder
+            var cylinderGeometry = new THREE.CylinderGeometry(4, 3, 6, 30);
+            var cylinderMaterial = new THREE.MeshLambertMaterial({ morphTargets: true, color: 0xff00ff });
+            // var cylinderMaterial = new THREE.MeshNormalMaterial();
+            var cylinderGeometry2 = new THREE.CylinderGeometry(4, 2, 3, 15);
+
+            var torusTarget = new THREE.TorusGeometry(3, 1, 30, 30, Math.PI * 2);
+
+            var torusGeometry = new THREE.TorusGeometry(2, 1, 15, 15, Math.PI * 2);
+
+            // define morphtargets and compute the morphnormal
+            // result.computeMorphNormals();   
+            
+            // cylinderGeometry.morphTargets[0] = {name: 't1', vertices: cylinderTarget1.vertices};
+            cylinderGeometry.morphTargets[0] = {name: 't2', vertices: torusTarget.vertices};
+            cylinderGeometry.computeMorphNormals();
+
+            var cup_body = new THREE.Mesh(cylinderGeometry, cylinderMaterial);
+            var cylinder2 = new THREE.Mesh(cylinderGeometry2);
+
+            var handle = new THREE.Mesh(torusGeometry);
+
+            // position the cylinder
+            cup_body.position.x = 0;
+            cup_body.position.y = 3;
+            cup_body.position.z = 0;
+
+            handle.position.x = 3;
+            handle.position.y = 3;
+            handle.position.z = 0;
+
+            //add the cube to the scene
+            scene.add(cup_body);
+            scene.add(handle);
+
+            // position and point the camera to the center of the scene
+            camera.position.x = -20;
+            camera.position.y = 10;
+            camera.position.z = 20;
+
+            camera.lookAt(scene.position);
+
+            // add subtle ambient lighting
+            var ambientLight = new THREE.AmbientLight(0x0c0c0c);
+            scene.add(ambientLight);
+
+            // add spotlight for the shadows
+            var spotLight = new THREE.SpotLight(0xffffff);
+            spotLight.position.set(-25, 25, 15);
+
+            scene.add(spotLight);
+
+            // add the output of the renderer to the html element
+            document.getElementById("WebGL-output").appendChild(renderer.domElement);
+
+
+            var controls = new function () {
+                this.influence_for_cup = 0.01;
+
+                this.update = function () {
+                       cup_body.morphTargetInfluences[0] = controls.influence_for_cup;
+                    //    console.log(cylinder.morphTargetInfluences[0]);
+                    //torus.morphTargetInfluences[0] = controls.influence2;
+
+                    // console.log(result.morphTargetInfluences);
+                    // result.morphTargetInfluences[0] = controls.influence2;
+                };
+            };
+
+            var gui = new dat.GUI();
+            gui.add(controls, 'influence_for_cup', 0, 1).onChange(controls.update);
+
+
+            render();
+
+            function render() {
+                stats.update();
+
+                camera.position.x = 50.0 * Math.cos(step);
+                camera.position.z = 50.0 * Math.sin(step);
+                camera.lookAt(new THREE.Vector3(0, 0, 0));
+                step += 0.01;
+
+                // render using requestAnimationFrame
+                renderer.render(scene, camera);
+                requestAnimationFrame(render);
+
+            }
+
+            function initStats() {
+
+                var stats = new Stats();
+
+                stats.setMode(0); // 0: fps, 1: ms
+
+                // Align top-left
+                stats.domElement.style.position = 'absolute';
+                stats.domElement.style.left = '0px';
+                stats.domElement.style.top = '0px';
+
+                document.getElementById("Stats-output").appendChild(stats.domElement);
+
+                return stats;
+            }
+        }
+        window.onload = init;
+
+    </script>
+</body>
+
+</html>
